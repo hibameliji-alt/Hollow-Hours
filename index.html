@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Mystery Files</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Spectral:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--fog:#e8e7ef;--mist:#f4f3f8;--ink:#1f1d2b;--soft:#6b6780;--line:#c9c6d6;--lamp:#5a4a8a;--blood:#8c2f45;--moss:#3d6b5c;color-scheme:light}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--fog);color:var(--ink);font-family:Spectral,Georgia,serif;line-height:1.5}
+body{padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 14px);max-width:520px;margin:0 auto}
+h1,h2,h3{font-family:"IM Fell English",Georgia,serif;font-weight:400;margin:0}
+h1{font-size:2.6rem;line-height:1.05;letter-spacing:.01em}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{background:var(--ink);color:var(--mist);border:0;padding:12px 18px;border-radius:3px}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+.btn.bad{background:var(--blood)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn:focus-visible,.cell:focus-visible,.lv:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+.screen{display:none;padding-top:22px}.screen.on{display:block}
+.fog{background:linear-gradient(180deg,#d9d6e6 0%,var(--fog) 70%);margin:0 -14px 18px;padding:34px 14px 26px;border-bottom:1px solid var(--line)}
+.fog p{color:var(--soft);margin:10px 0 0}
+.chars{display:grid;gap:10px;margin:16px 0}
+.char{display:flex;gap:12px;align-items:center;text-align:left;background:var(--mist);border:1px solid var(--line);padding:12px;border-radius:3px;width:100%}
+.char.sel{border-color:var(--ink);box-shadow:inset 4px 0 0 var(--lamp)}
+.char .face{font-size:2rem;width:46px;height:46px;display:grid;place-items:center;background:var(--fog);border-radius:50%}
+.char b{font-family:"IM Fell English",Georgia,serif;font-weight:400;font-size:1.15rem}
+.char small{display:block;color:var(--soft)}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tier{margin:18px 0 8px;color:var(--soft);font-style:italic}
+.lvs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.lv{background:var(--mist);border:1px solid var(--line);padding:10px 0;border-radius:3px;text-align:center}
+.lv.done{background:#dbe6e1;border-color:var(--moss)}
+.lv.cur{border-color:var(--ink);box-shadow:inset 0 -3px 0 var(--lamp)}
+.lv:disabled{color:#a9a5b8;background:#efeef4;cursor:default}
+.case{background:var(--mist);border:1px solid var(--line);padding:12px 14px;border-radius:3px;margin-bottom:10px}
+.case h3{font-size:1.25rem}.case p{margin:4px 0 0;color:var(--soft);font-size:.95rem}
+.stat{display:flex;justify-content:space-between;font-size:.95rem;margin:8px 0}
+.board{display:grid;gap:3px;background:var(--line);padding:3px;border-radius:3px;margin:8px 0}
+.cell{aspect-ratio:1;background:var(--mist);border:0;padding:0;display:grid;place-items:center;font-size:1.35rem;position:relative}
+.cell.wall{background:repeating-linear-gradient(135deg,#8e8aa3 0 4px,#7c7893 4px 8px);cursor:default}
+.cell.near{background:#e3dff0}
+.tag{position:absolute;bottom:1px;right:3px;font-size:.55rem;color:var(--soft);font-family:Spectral,serif}
+.cell.clear{background:#dbe6e1}
+.pad{display:grid;grid-template-columns:repeat(3,56px);gap:6px;justify-content:center;margin:10px 0}
+.pad button{height:46px;background:var(--mist);border:1px solid var(--line);border-radius:3px;font-size:1.1rem}
+.pad .sp{visibility:hidden}
+.sheet{position:fixed;inset:auto 0 0 0;max-width:520px;margin:0 auto;background:var(--mist);border-top:2px solid var(--ink);padding:16px 14px calc(env(safe-area-inset-bottom) + 16px);box-shadow:0 -18px 40px rgba(31,29,43,.28);max-height:78vh;overflow:auto;transform:translateY(105%);transition:transform .22s;z-index:5}
+.sheet.on{transform:none}
+.q{display:block;width:100%;text-align:left;margin:6px 0;background:var(--fog);border:1px solid var(--line);padding:10px 12px;border-radius:3px}
+.q.asked{opacity:.6}
+.say{border-left:3px solid var(--lamp);padding:2px 0 2px 10px;margin:8px 0;font-style:italic}
+.say.lie{border-color:var(--blood)}
+.log{margin:6px 0;padding:8px 10px;background:var(--mist);border:1px solid var(--line);border-radius:3px;font-size:.93rem}
+.log b{font-weight:600}
+.veil{position:fixed;inset:0;background:rgba(31,29,43,.62);display:none;place-items:center;padding:20px;z-index:9}
+.veil.on{display:grid}
+.modal{background:var(--mist);padding:22px;border-radius:3px;max-width:380px;width:100%;text-align:center}
+.modal h2{font-size:1.9rem;margin-bottom:6px}
+.modal .row{justify-content:center;margin-top:16px}
+@media (prefers-reduced-motion:reduce){.sheet{transition:none}}
+</style>
+</head>
+<body>
+
+<section id="s-home" class="screen on">
+  <div class="fog"><h1>The Mystery Files</h1><p>A thousand cases. One liar in every house. Pick your investigator, walk the halls, and question everyone.</p></div>
+  <h2>Choose your investigator</h2>
+  <div class="chars" id="chars"></div>
+  <button class="btn" id="play" style="width:100%">Open the case files</button>
+</section>
+
+<section id="s-levels" class="screen">
+  <div class="row"><h2>Case files</h2><button class="btn alt" id="toHome">Change investigator</button></div>
+  <p id="prog" style="color:var(--soft);margin:6px 0 0"></p>
+  <div id="lvs"></div>
+</section>
+
+<section id="s-game" class="screen">
+  <div class="row"><button class="btn alt" id="back">Case files</button><button class="btn alt" id="notes">Notebook</button></div>
+  <div class="case"><h3 id="gTitle"></h3><p id="gStory"></p></div>
+  <div class="stat"><span id="gQ"></span><span id="gHint"></span></div>
+  <div class="board" id="board"></div>
+  <div class="pad">
+    <span class="sp"></span><button data-d="0,-1" aria-label="Up">▲</button><span class="sp"></span>
+    <button data-d="-1,0" aria-label="Left">◀</button><button data-d="0,1" aria-label="Down">▼</button><button data-d="1,0" aria-label="Right">▶</button>
+  </div>
+  <p style="color:var(--soft);font-size:.9rem;text-align:center;margin:0">Tap any tile to walk there. Tap a suspect to question them.</p>
+</section>
+
+<div class="sheet" id="sheet" role="dialog" aria-live="polite"></div>
+<div class="veil" id="veil"><div class="modal" id="modal"></div></div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const CHARS=[
+ {n:"Inspector Vale",e:"🕵️",d:"Veteran. Starts with 3 extra questions."},
+ {n:"Dr. Mara Quill",e:"🩺",d:"Reads people. Liars sometimes look uneasy (not always)."},
+ {n:"Finn the Archivist",e:"📚",d:"Once per case, clears one innocent suspect."},
+ {n:"Lady Orla Gray",e:"🎩",d:"Sharp memory. Suspects answer 'who did you see' for free."}
+];
+const SUSP=["Ada","Bram","Celeste","Dorian","Edith","Felix","Greta","Hugo","Iris","Jasper","Kit","Lenora"];
+const FACES=["🧔","👩‍🦰","🧓","👨‍🦱","👵","🧑‍🎤","👩‍🍳","🤵","👩‍🔬","🧑‍🌾","👲","🧛"];
+const ROOMS=["Library","Cellar","Study","Ballroom","Greenhouse","Kitchen","Attic","Chapel","Crypt","Gallery"];
+const TIMES=["8:15 PM","9:00 PM","9:40 PM","10:10 PM","10:45 PM","11:30 PM","midnight","1:05 AM"];
+const VICT=["Lord Ashby","Madame Corvin","the Collector","Professor Hale","Sir Wexley","the Dowager","Mr. Thorne","the Archduke"];
+const TALK=["\"Dreadful business. I only came for the wine.\"","\"The house has been strange all week.\"","\"I hardly knew the poor soul.\"","\"Ask your questions. I've nothing to hide.\"","\"Every floorboard in this place creaks. Someone was awake.\"","\"I'd rather not be the last one standing in this hall.\""];
+const NERV=["(avoids your eyes)","(fidgets with a sleeve)","(laughs a little too quickly)","(glances at the door)"];
+let save={unlocked:1,ch:0};
+try{const s=JSON.parse(localStorage.getItem("mf_save")||"null");if(s)save=Object.assign(save,s)}catch(e){}
+const store=()=>{try{localStorage.setItem("mf_save",JSON.stringify(save))}catch(e){}};
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const list=a=>a.length<2?a.join(""):a.slice(0,-1).join(", ")+" and "+a[a.length-1];
+
+function gen(L){
+  const r=rng(L*7919+13),ri=n=>Math.floor(r()*n),shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=ri(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const n=Math.min(9,3+Math.floor((L-1)/90)),nr=Math.min(10,4+Math.floor((L-1)/120)),tier=Math.floor((L-1)/100);
+  const rooms=shuf(ROOMS).slice(0,nr),R=rooms[0],X=rooms[1],names=shuf(SUSP.map((s,i)=>i)).slice(0,n);
+  const cul=ri(n);
+  const P=names.map((id,i)=>({id,name:SUSP[id],face:FACES[id],cul:i===cul,room:null,nerv:false}));
+  let k=0;
+  P.forEach(p=>{if(p.cul)p.room=R;else if(k<2){p.room=X;k++}else p.room=rooms[1+ri(nr-1)]});
+  P.forEach(p=>{p.nerv=p.cul?r()<.8:r()<.2});
+  P.forEach(p=>{
+    p.claim=p.cul?X:p.room;
+    const mates=P.filter(o=>o!==p&&o.room===p.claim&&!o.cul).map(o=>o.name);
+    p.saw=mates;
+  });
+  const W=7,H=9+Math.min(3,Math.floor(tier/3)),walls=new Set(),wn=Math.min(16,3+Math.floor(L/45));
+  const start=[Math.floor(W/2),H-1];
+  let pos,tries=0;
+  do{
+    walls.clear();
+    while(walls.size<wn){const x=ri(W),y=ri(H-1);walls.add(x+","+y)}
+    const used=new Set();
+    pos=P.map(()=>{let c;do{c=[ri(W),ri(H-2)]}while(walls.has(c+"")||used.has(c+""));used.add(c+"");return c});
+    tries++;
+  }while(!reach(W,H,walls,start,pos)&&tries<60);
+  P.forEach((p,i)=>p.pos=pos[i]);
+  const budget=Math.max(n+2,2*n-tier);
+  return{L,P,rooms,R,X,time:TIMES[ri(TIMES.length)],victim:VICT[ri(VICT.length)],W,H,walls,start,budget,tier};
+}
+function reach(W,H,walls,s,pos){
+  const seen=new Set([s+""]),q=[s];
+  while(q.length){const [x,y]=q.shift();[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const a=x+dx,b=y+dy,k=a+","+b;if(a<0||b<0||a>=W||b>=H||walls.has(k)||seen.has(k))return;seen.add(k);q.push([a,b])})}
+  return pos.every(([x,y])=>[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>seen.has((x+dx)+","+(y+dy))));
+}
+
+let G,me,left,asked,cleared,hintUsed,notes,busy;
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id))}
+
+function home(){
+  const c=$("#chars");c.innerHTML="";
+  CHARS.forEach((ch,i)=>{const b=document.createElement("button");b.className="char"+(i===save.ch?" sel":"");
+    b.innerHTML='<span class="face">'+ch.e+'</span><span><b>'+ch.n+'</b><small>'+ch.d+'</small></span>';
+    b.onclick=()=>{save.ch=i;store();home()};c.appendChild(b)});
+  show("s-home");
+}
+const TN=["The Quiet Parlour","Fog on the Stairs","Locked Doors","The Long Gallery","Candles Out","Whispers in Walls","The Cold Wing","Midnight Ledger","Black Glass","The Last Witness"];
+function levels(){
+  show("s-levels");
+  $("#prog").textContent="Solved "+(save.unlocked-1)+" of 1000. Each case is harder than the last.";
+  const box=$("#lvs");box.innerHTML="";
+  for(let t=0;t<10;t++){
+    const h=document.createElement("div");h.className="tier";h.textContent="Cases "+(t*100+1)+"–"+(t*100+100)+": "+TN[t];box.appendChild(h);
+    const g=document.createElement("div");g.className="lvs";
+    for(let i=1;i<=100;i++){const L=t*100+i,b=document.createElement("button");b.className="lv"+(L<save.unlocked?" done":"")+(L===save.unlocked?" cur":"");
+      b.textContent=L<=save.unlocked?L:"🔒";b.disabled=L>save.unlocked;b.setAttribute("aria-label","Case "+L);b.onclick=()=>start(L);g.appendChild(b)}
+    box.appendChild(g);
+  }
+  const cur=box.querySelector(".cur");if(cur&&save.unlocked>3)setTimeout(()=>cur.scrollIntoView({block:"center"}),30);
+}
+
+function start(L){
+  G=gen(L);me=G.start.slice();asked={};cleared=new Set();hintUsed=false;notes=[];busy=false;
+  const ch=CHARS[save.ch];
+  left=G.budget+(save.ch===0?3:0);
+  $("#gTitle").textContent="Case "+L+": "+TN[Math.floor((L-1)/100)];
+  $("#gStory").textContent=G.victim.charAt(0).toUpperCase()+G.victim.slice(1)+" was found dead in the "+G.R+" at "+G.time+". One of the "+G.P.length+" guests lied about where they were. Everyone else tells the truth.";
+  closeSheet();draw();show("s-game");
+}
+function draw(){
+  $("#gQ").textContent="Questions left: "+left;
+  const hb=$("#gHint");hb.innerHTML="";
+  if(save.ch===2){const b=document.createElement("button");b.className="btn alt";b.style.padding="4px 10px";b.textContent=hintUsed?"Clue used":"Clear one innocent";b.disabled=hintUsed;b.onclick=useHint;hb.appendChild(b)}
+  const bd=$("#board");bd.style.gridTemplateColumns="repeat("+G.W+",1fr)";bd.innerHTML="";
+  for(let y=0;y<G.H;y++)for(let x=0;x<G.W;x++){
+    const k=x+","+y,c=document.createElement("button");c.className="cell";
+    const si=G.P.findIndex(p=>p.pos[0]===x&&p.pos[1]===y);
+    if(G.walls.has(k)){c.classList.add("wall");c.disabled=true;c.setAttribute("aria-label","Furniture")}
+    else if(x===me[0]&&y===me[1]){c.textContent=CHARS[save.ch].e;c.setAttribute("aria-label","You")}
+    else if(si>=0){const p=G.P[si];c.textContent=p.face;c.innerHTML+='<span class="tag">'+p.name+'</span>';if(cleared.has(si))c.classList.add("clear");
+      if(adj(p))c.classList.add("near");c.onclick=()=>talkTo(si);c.setAttribute("aria-label","Question "+p.name)}
+    else c.onclick=()=>walkTo(x,y);
+    bd.appendChild(c);
+  }
+}
+const adj=p=>Math.abs(p.pos[0]-me[0])+Math.abs(p.pos[1]-me[1])===1;
+const free=(x,y)=>x>=0&&y>=0&&x<G.W&&y<G.H&&!G.walls.has(x+","+y)&&!G.P.some(p=>p.pos[0]===x&&p.pos[1]===y);
+function path(tx,ty,near){
+  const q=[[me[0],me[1]]],prev={[me+""]:null};
+  while(q.length){const [x,y]=q.shift();
+    if(near?(Math.abs(x-tx)+Math.abs(y-ty)===1):(x===tx&&y===ty)){const out=[];let k=x+","+y;while(prev[k]){out.unshift(prev[k].c);k=prev[k].f}return out}
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+dx,b=y+dy,k=a+","+b;if(prev[k]!==undefined||!free(a,b))continue;prev[k]={f:x+","+y,c:[a,b]};q.push([a,b])}}
+  return null;
+}
+function walk(p,done){
+  if(!p||busy){return}
+  busy=true;let i=0;
+  const t=setInterval(()=>{if(i>=p.length){clearInterval(t);busy=false;draw();done&&done();return}me=p[i++];draw()},110);
+}
+function walkTo(x,y){closeSheet();const p=path(x,y,false);if(p)walk(p)}
+function talkTo(i){
+  const p=G.P[i];
+  if(adj(p)){openSheet(i);return}
+  closeSheet();const pa=path(p.pos[0],p.pos[1],true);if(pa)walk(pa,()=>openSheet(i));
+}
+document.querySelectorAll(".pad button[data-d]").forEach(b=>b.onclick=()=>{
+  if(busy)return;const [dx,dy]=b.dataset.d.split(",").map(Number),x=me[0]+dx,y=me[1]+dy;
+  if(free(x,y)){me=[x,y];closeSheet();draw()}
+});
+document.addEventListener("keydown",e=>{
+  const m={ArrowUp:"0,-1",ArrowDown:"0,1",ArrowLeft:"-1,0",ArrowRight:"1,0"}[e.key];
+  if(m&&$("#s-game").classList.contains("on")){e.preventDefault();document.querySelector('.pad button[data-d="'+m+'"]').click()}
+});
+
+function ans(i,type){
+  const p=G.P[i];
+  if(type==="where")return'"I was in the '+p.claim+' at '+G.time+'."';
+  return p.saw.length?'"In the '+p.claim+', I saw '+list(p.saw)+'."':'"In the '+p.claim+'? I saw no one."';
+}
+function openSheet(i){
+  const p=G.P[i],sh=$("#sheet");
+  const free2=save.ch===3;
+  let h='<div class="row"><h3>'+p.face+' '+p.name+'</h3><button class="btn alt" id="x" style="padding:6px 12px">Close</button></div>';
+  [["where","Where were you at "+G.time+"?",1],["saw","Who did you see there?",free2?0:1]].forEach(([t,lab,cost])=>{
+    const k=i+t,got=asked[k];
+    h+='<button class="q'+(got?" asked":"")+'" data-t="'+t+'">'+lab+(got||cost===0?"":" (costs 1)")+'</button>';
+    if(got)h+='<div class="say'+(got.n?" lie":"")+'">'+got.a+(got.n?" <small>"+got.n+"</small>":"")+'</div>';
+  });
+  h+='<button class="q" data-t="talk">Small talk (free)</button><div id="talk"></div>';
+  h+='<div class="row" style="margin-top:12px"><button class="btn bad" id="acc">Accuse '+p.name+'</button></div>';
+  sh.innerHTML=h;sh.classList.add("on");
+  $("#x").onclick=closeSheet;
+  sh.querySelectorAll(".q").forEach(b=>b.onclick=()=>{
+    const t=b.dataset.t;
+    if(t==="talk"){const r=rng(i*31+G.L);$("#talk").innerHTML='<div class="say">'+TALK[Math.floor(r()*TALK.length)]+(p.nerv?" <small>"+NERV[Math.floor(r()*NERV.length)]+"</small>":"")+'</div>';
+      return}
+    const k=i+t;if(asked[k])return;
+    const cost=(t==="saw"&&free2)?0:1;
+    if(left<cost){$("#talk").innerHTML='<div class="say lie">You are out of questions. Time to decide.</div>';return}
+    left-=cost;
+    const r=rng(i*97+G.L+(t==="saw"?5:0));
+    const nerv=(save.ch===1&&p.nerv)?NERV[Math.floor(r()*NERV.length)]:"";
+    asked[k]={a:ans(i,t),n:nerv};
+    notes.push({who:p.name,q:t==="where"?"Where were you at "+G.time+"?":"Who did you see there?",a:asked[k].a});
+    draw();openSheet(i);
+  });
+  $("#acc").onclick=()=>accuse(i);
+}
+function closeSheet(){$("#sheet").classList.remove("on")}
+function useHint(){
+  if(hintUsed)return;
+  const c=G.P.map((p,i)=>i).filter(i=>!G.P[i].cul&&!cleared.has(i));
+  if(!c.length)return;
+  const r=rng(G.L+777);const i=c[Math.floor(r()*c.length)];
+  cleared.add(i);hintUsed=true;
+  modal("<h2>Cleared</h2><p>"+G.P[i].name+" is innocent. Cross them off.</p>",[["Continue",null]]);draw();
+}
+$("#notes").onclick=()=>{
+  let h="<h2>Notebook</h2>";
+  h+='<p style="color:var(--soft)">Murder: the '+G.R+', '+G.time+'.</p>';
+  h+=notes.length?notes.map(n=>'<div class="log"><b>'+n.who+'</b><br><i>'+n.q+'</i><br>'+n.a+'</div>').join(""):'<p>No answers yet. Walk up to a suspect and ask.</p>';
+  modal(h,[["Close",null]],true);
+};
+function accuse(i){
+  const p=G.P[i];
+  modal("<h2>Accuse "+p.name+"?</h2><p>You only get one shot per attempt.</p>",[["Not yet",null],["Accuse",()=>{
+    closeSheet();
+    if(p.cul){
+      if(save.unlocked===G.L){save.unlocked=Math.min(1001,G.L+1);store()}
+      modal("<h2>Case closed</h2><p>"+p.name+" lied about being in the "+G.X+". They were in the "+G.R+" the whole time.</p>",G.L<1000?[["Case files",levels],["Next case",()=>start(G.L+1)]]:[["Case files",levels]]);
+    }else{
+      modal("<h2>Wrong guest</h2><p>"+p.name+" told the truth. The real culprit slipped away. Re-read the answers and look for one that doesn't match.</p>",[["Case files",levels],["Try again",()=>start(G.L)]]);
+    }
+  }]]);
+}
+function modal(html,btns,wide){
+  const m=$("#modal");m.innerHTML=html+'<div class="row"></div>';
+  const row=m.querySelector(".row:last-child");
+  btns.forEach(([t,f],j)=>{const b=document.createElement("button");b.className="btn"+(j===0&&btns.length>1?" alt":"");b.textContent=t;b.onclick=()=>{$("#veil").classList.remove("on");f&&f()};row.appendChild(b)});
+  m.style.textAlign=wide?"left":"center";
+  $("#veil").classList.add("on");
+}
+$("#play").onclick=levels;$("#toHome").onclick=home;$("#back").onclick=levels;
+home();
+})();
+</script>
+</body>
+</html>
